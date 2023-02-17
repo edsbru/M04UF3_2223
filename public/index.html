@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>ENTI Survivors</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/phaser/3.55.2/phaser-arcade-physics.min.js" integrity="sha512-3ggJ43PNjH5aQCsd8/CBKa18RPMR8OaQX0JvHCZ4iJO/2Jk9mLdVZYVGFVUJmIoKeoF9Hg1pVgmROv9+xpgQlQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+</head>
+<body>
+<h1>ENTI Survivors</h1>
+<script>
+
+const config = {
+	width: 960,
+	height: 540,
+	physics:{
+		default:'arcade',
+		arcade: {
+			debug: true
+		}
+	},
+	scene:{
+		preload: precarga,
+		create: crear,
+		update: actualiza
+	}
+};
+
+const game = new Phaser.Game(config);
+
+let player;
+let enemies_max = 28;
+let player_speed = 4;
+let weapon;
+let enemies = [];
+let enemy_padding = 128;
+let score = 0;
+let score_text;
+
+let enemies_pos = [
+	{x: enemy_padding, y: enemy_padding},
+	{x: config.width/2, y: enemy_padding},
+	{x: config.width - enemy_padding, y: enemy_padding},
+	{x: config.width - enemy_padding, y: config.height/2},
+	{x: config.width - enemy_padding, y: config.height - enemy_padding},
+	{x: config.width/2, y: config.height - enemy_padding},
+	{x: enemy_padding, y: config.height - enemy_padding},
+	{x: enemy_padding, y: config.height/2}
+];
+let key_left;
+let key_right;
+let key_up;
+let key_down;
+
+function precarga ()
+{
+	this.load.image("bg-img", "imgs/background.png");
+	this.load.image("player-img", "imgs/player.png");
+	
+	for (let i = 1; i <= enemies_max; i++){
+		this.load.image("enemy"+i, "imgs/enemy"+i+".png");
+	}
+	this.load.image("weapon-img", "imgs/bat_wood.png");
+}
+
+
+function crear ()
+{
+	let bg = this.add.image(config.width/2, config.height/2, "bg-img");
+	player = this.add.image(config.width/2, config.height/2, "player-img");
+	weapon = this.add.image(config.width/2+48, config.height/2, "weapon-img");
+	weapon.visible = false;
+	score_text = this.add.text(16, 16, '0', {font:'600 64px Arial'});
+
+	this.physics.add.existing(player, false);
+	player.body.setCollideWorldBounds(true);
+
+	for (let i = 0; i < enemies_pos.length; i++){
+		let enemy = "enemy"+Math.floor(Math.random()*enemies_max+1);
+
+		let e = this.add.image(enemies_pos[i].x, enemies_pos[i].y, enemy)
+		enemies.push(e);
+
+		this.physics.add.existing(e, false);
+		e.body.setCollideWorldBounds(true);
+	}
+
+	this.physics.add.collider(player,enemies);
+
+	key_left = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
+	key_right = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D);
+	key_up = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W);
+	key_down = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
+	
+	setInterval(function(){
+		weapon.visible = true;
+		setTimeout(function(){
+			weapon.visible = false;
+		}, 400);
+	}, 2000);
+}
+
+
+function actualiza ()
+{
+	if (key_left.isDown){
+	player.x -= player_speed;
+	}
+	else if (key_right.isDown){
+	player.x += player_speed;
+	}
+	if (key_up.isDown){
+	player.y -= player_speed;
+	}
+	else if (key_down.isDown){
+	player.y += player_speed;
+	}
+
+	weapon.x=player.x+48;
+	weapon.y=player.y;
+	
+
+	for (let i = 0; i < enemies_pos.length; i++){
+		this.physics.moveToObject(enemies[i], player, 50)
+		
+		if (this.physics.collide(weapon, enemies[i])){
+			enemies[i].visible = false;
+
+			score text.text = ++score;
+		}
+	}		
+}
+
+
+
+</script>
+</body>
+</html>
