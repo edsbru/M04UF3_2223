@@ -31,6 +31,7 @@ let player;
 let enemies_max = 28;
 let player_speed = 4;
 let weapon;
+let weapon_dist = 48;
 let enemies = [];
 let enemy_padding = 128;
 let score = 0;
@@ -91,33 +92,72 @@ function crear ()
 	key_up = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W);
 	key_down = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
 	
-	setInterval(function(){
+	setInterval(() => {
 		weapon.visible = true;
-		setTimeout(function(){
+		this.physics.world.enable(weapon);
+		setTimeout(() => {
 			weapon.visible = false;
+			this.physics.world.disable(weapon)
 		}, 400);
 	}, 2000);
+	
+	score_text = this.add.text(16, 16, '0', {font:'600 64px Arial'});
 }
 
+let last_dir = "L";
 
+let last_x = config.width/2;
+let last_y = config.height/2
 function actualiza ()
 {
 	if (key_left.isDown){
 	player.x -= player_speed;
+
+	last_dir = "L"; 
 	}
 	else if (key_right.isDown){
 	player.x += player_speed;
+	
+	last_dir = "R";
 	}
 	if (key_up.isDown){
 	player.y -= player_speed;
+	
+	last_dir = "U";
 	}
 	else if (key_down.isDown){
 	player.y += player_speed;
+
+	last_dir = "D";
+	}
+	
+	player.x = last_x;
+	player.y = last_y;
+
+	switch(last_dir){
+		case "L":
+			weapon.x = player.x - 48;
+			weapon.y = player.y;
+			weapon.rotation = 180*Math.PI/180;
+			break;
+		case "R":
+			weapon.x = player.x + 48;
+			weapon.y = player.y;
+			weapon.rotation = 0*Math.PI/180;
+			break;
+		case "U":
+			weapon.x = player.x;
+			weapon.y = player.y - 48;
+			weapon.rotation = 270*Math.PI/180;
+			break;
+		case "D":
+			weapon.x = player.x;
+			weapon.y = player.y + 48;
+			weapon.rotation = 90*Math.PI/180;
+			break;
 	}
 
-	weapon.x=player.x+48;
-	weapon.y=player.y;
-	
+
 
 	for (let i = 0; i < enemies_pos.length; i++){
 		this.physics.moveToObject(enemies[i], player, 50)
@@ -125,7 +165,9 @@ function actualiza ()
 		if (this.physics.collide(weapon, enemies[i])){
 			enemies[i].visible = false;
 
-			score text.text = ++score;
+			this.physics.world.disable(enemies[i]);
+
+			score_text.text = ++score;
 		}
 	}		
 }
